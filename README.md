@@ -193,10 +193,94 @@ The bot will automatically create the required table (`announce_channels`) on fi
   pm2 start index.js --name printerbot
   ```
 
+### Docker Deployment
+The application includes a Dockerfile for containerized deployment.
+
+**Build the Docker image:**
+```bash
+docker build -t printerbot .
+```
+
+**Run the container:**
+```bash
+docker run -d \
+  --name printerbot \
+  -p 3000:3000 \
+  --env-file .env \
+  -v $(pwd)/data:/app/data \
+  printerbot
+```
+
+**Using Docker Compose:**
+Create a `docker-compose.yml` file:
+```yaml
+version: '3.8'
+
+services:
+  printerbot:
+    build: .
+    container_name: printerbot
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+```
+
+Then run:
+```bash
+docker-compose up -d
+```
+
+**Note:** 
+- The `data` volume mount is only needed if using file-based storage (`STORAGE_TYPE=file`)
+- For PostgreSQL storage, ensure your database is accessible from the container
+- Make sure to set all required environment variables in your `.env` file
+
+### CI/CD with GitHub Actions
+
+The repository includes a GitHub Actions workflow that automatically builds and releases Docker images to GitHub Container Registry (ghcr.io).
+
+**How it works:**
+- **On push to main/master**: Builds and pushes images tagged with the branch name and commit SHA
+- **On tags (v* format)**: Builds and pushes versioned images (e.g., `v1.0.0`, `1.0.0`, `1.0`, `1`, `latest`)
+- **On pull requests**: Builds images for testing (does not push to registry)
+- **Manual trigger**: Can be triggered manually from the Actions tab
+
+**Image tags:**
+- `latest` - Latest build from default branch
+- `main` or `master` - Latest build from that branch
+- `v1.0.0` - Semantic version tag
+- `1.0.0`, `1.0`, `1` - Version variants
+- `main-<sha>` - Branch name with commit SHA
+
+**Pulling the image:**
+```bash
+# Pull latest image
+docker pull ghcr.io/your-username/printerbot:latest
+
+# Pull specific version
+docker pull ghcr.io/your-username/printerbot:v1.0.0
+
+# Pull from specific branch
+docker pull ghcr.io/your-username/printerbot:main
+```
+
+**Note:** Make sure your GitHub repository has packages enabled. The workflow uses `GITHUB_TOKEN` automatically, so no additional secrets are required.
+
 ### Hosting Options
-- **VPS/Cloud Server**: Deploy on any Node.js-compatible hosting
+- **VPS/Cloud Server**: Deploy on any Node.js-compatible hosting or use Docker
 - **Heroku**: Set environment variables in Heroku dashboard
 - **Railway/Render**: Connect your repo and set environment variables
+- **Docker Platforms**: Deploy using Docker on platforms like DigitalOcean, AWS ECS, Google Cloud Run, etc.
 
 ## License
 
