@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Prusa Better Discord</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+        
+        .user-details h2 {
+            color: #333;
+            font-size: 1.2em;
+        }
+        
+        .user-details p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .status-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .status-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .guild-list {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .guild-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid #5865F2;
+        }
+        
+        .guild-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+        }
+        
+        .guild-info {
+            flex: 1;
+        }
+        
+        .guild-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .guild-status {
+            color: #28a745;
+            font-size: 0.9em;
+        }
+        
+        .no-bot-card {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .no-bot-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .no-bot-card p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .invite-btn {
+            display: inline-block;
+            background: #5865F2;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: background 0.3s, transform 0.2s;
+        }
+        
+        .invite-btn:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+        }
+        
+        .channel-info {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .invite-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .invite-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .invite-card p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .invite-btn-secondary {
+            display: inline-block;
+            background: #5865F2;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1em;
+            transition: background 0.3s, transform 0.2s;
+        }
+        
+        .invite-btn-secondary:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+        }
+        
+        .admin-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .admin-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .admin-info {
+            color: #666;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .admin-role-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        
+        .admin-role-select:focus {
+            outline: none;
+            border-color: #5865F2;
+        }
+        
+        .save-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .save-btn:hover {
+            background: #218838;
+        }
+        
+        .save-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .admin-badge {
+            display: inline-block;
+            background: #5865F2;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="user-info">
+                <% if (user.avatar) { %>
+                    <img src="<%= user.avatar %>" alt="Avatar" class="user-avatar">
+                <% } else { %>
+                    <div class="user-avatar" style="background: #5865F2; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em;">
+                        <%= user.username.charAt(0).toUpperCase() %>
+                    </div>
+                <% } %>
+                <div class="user-details">
+                    <h2><%= user.username %><% if (user.discriminator && user.discriminator !== '0') { %>#<%= user.discriminator %><% } %></h2>
+                    <p>Discord User</p>
+                </div>
+            </div>
+            <a href="/auth/logout" class="logout-btn">Logout</a>
+        </div>
+        
+        <% if (hasBot) { %>
+            <div class="status-card">
+                <h2>✅ Bot Status</h2>
+                <p style="color: #666; margin-bottom: 20px;">The bot is active in the following servers:</p>
+                <div class="guild-list">
+                    <% commonGuilds.forEach(guild => { %>
+                        <div class="guild-item">
+                            <% if (guild.icon) { %>
+                                <img src="<%= guild.icon %>" alt="<%= guild.name %>" class="guild-icon">
+                            <% } else { %>
+                                <div class="guild-icon" style="background: #5865F2; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em;">
+                                    <%= guild.name.charAt(0).toUpperCase() %>
+                                </div>
+                            <% } %>
+                            <div class="guild-info">
+                                <div class="guild-name"><%= guild.name %></div>
+                                <div class="guild-status">✅ Bot is active</div>
+                                <% if (guild.channelId) { %>
+                                    <div class="channel-info">Announce channel configured</div>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+            
+            <% commonGuilds.forEach(guild => { %>
+                <% if (guild.userIsAdmin || guild.userIsOwner) { %>
+                    <div class="admin-card">
+                        <h3>⚙️ Administrator Settings - <%= guild.name %></h3>
+                        <div class="admin-info">
+                            <% if (guild.adminRoleName) { %>
+                                <p><strong>Current Admin Role:</strong> <span class="admin-badge"><%= guild.adminRoleName %></span></p>
+                            <% } else { %>
+                                <p><strong>Current Admin Role:</strong> <em>Not set (only server owner has admin access)</em></p>
+                            <% } %>
+                            <p style="margin-top: 10px; font-size: 0.9em; color: #888;">Users with the selected role will be able to use administrator commands.</p>
+                        </div>
+                        <form class="admin-role-form" data-guild-id="<%= guild.id %>">
+                            <label for="admin-role-<%= guild.id %>" style="display: block; margin-bottom: 8px; color: #333; font-weight: 600;">Select Administrator Role:</label>
+                            <select name="roleId" id="admin-role-<%= guild.id %>" class="admin-role-select">
+                                <option value="">-- No Admin Role (Owner Only) --</option>
+                                <% if (guild.roles && guild.roles.length > 0) { %>
+                                    <% guild.roles.forEach(role => { %>
+                                        <option value="<%= role.id %>" <%= guild.adminRoleId === role.id ? 'selected' : '' %>>
+                                            <%= role.name %><% if (role.managed) { %> (Managed)<% } %>
+                                        </option>
+                                    <% }); %>
+                                <% } else { %>
+                                    <option value="" disabled>No roles available</option>
+                                <% } %>
+                            </select>
+                            <p style="font-size: 0.85em; color: #666; margin-top: 8px; margin-bottom: 15px;">
+                                All members with the selected role will have administrator access to bot commands.
+                            </p>
+                            <button type="submit" class="save-btn">Save Admin Role</button>
+                        </form>
+                        
+                        <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e9ecef;">
+                            <h4 style="color: #333; margin-bottom: 15px;">Announce Channel</h4>
+                            <div class="admin-info" style="margin-bottom: 15px;">
+                                <% if (guild.channelId) { %>
+                                    <p><strong>Current Announce Channel:</strong> <span class="admin-badge">Configured</span></p>
+                                <% } else { %>
+                                    <p><strong>Current Announce Channel:</strong> <em>Not set</em></p>
+                                <% } %>
+                                <p style="margin-top: 10px; font-size: 0.9em; color: #888;">Select the channel where webhook messages will be posted.</p>
+                            </div>
+                            <form class="announce-channel-form" data-guild-id="<%= guild.id %>">
+                                <label for="announce-channel-<%= guild.id %>" style="display: block; margin-bottom: 8px; color: #333; font-weight: 600;">Select Announce Channel:</label>
+                                <select name="channelId" id="announce-channel-<%= guild.id %>" class="admin-role-select">
+                                    <option value="">-- No Channel Selected --</option>
+                                    <% if (guild.channels && guild.channels.length > 0) { %>
+                                        <% 
+                                        let currentCategory = null;
+                                        let optgroupOpen = false;
+                                        %>
+                                        <% guild.channels.forEach(channel => { %>
+                                            <% if (channel.parent !== currentCategory) { %>
+                                                <% if (optgroupOpen) { %>
+                                                    </optgroup>
+                                                <% } %>
+                                                <% 
+                                                currentCategory = channel.parent;
+                                                optgroupOpen = true;
+                                                %>
+                                                <optgroup label="<%= channel.parent || 'No Category' %>">
+                                            <% } %>
+                                            <option value="<%= channel.id %>" <%= guild.channelId === channel.id ? 'selected' : '' %>>
+                                                # <%= channel.name %>
+                                            </option>
+                                        <% }); %>
+                                        <% if (optgroupOpen) { %>
+                                            </optgroup>
+                                        <% } %>
+                                    <% } else { %>
+                                        <option value="" disabled>No channels available</option>
+                                    <% } %>
+                                </select>
+                                <p style="font-size: 0.85em; color: #666; margin-top: 8px; margin-bottom: 15px;">
+                                    Webhook messages will be posted in the selected channel.
+                                </p>
+                                <button type="submit" class="save-btn">Save Announce Channel</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h3>🔗 Custom Webhooks - <%= guild.name %></h3>
+                        <div class="admin-info">
+                            <p>Create custom webhook endpoints for this server. Each webhook has a unique URL that you can use to send notifications.</p>
+                        </div>
+                        
+                        <% if (guild.webhooks && guild.webhooks.length > 0) { %>
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #333; margin-bottom: 10px;">Your Webhooks:</h4>
+                                <% guild.webhooks.forEach(webhook => { %>
+                                    <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                            <div style="flex: 1;">
+                                                <strong><%= webhook.identifier %></strong>
+                                                <div style="font-size: 0.85em; color: #666; margin-top: 5px; font-family: monospace;">
+                                                    <%= webhookBaseUrl %>/webhook/<%= webhook.identifier %>
+                                                </div>
+                                            </div>
+                                            <button class="delete-webhook-btn" data-identifier="<%= webhook.identifier %>" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-left: 10px;">Delete</button>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                                <input type="checkbox" class="webhook-privacy-toggle" data-identifier="<%= webhook.identifier %>" <%= webhook.isPublic !== false ? 'checked' : '' %>>
+                                                <span style="font-size: 0.9em; color: #333;">
+                                                    <strong>Public</strong> - Messages visible to everyone in the channel
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <p style="font-size: 0.8em; color: #888; margin-top: 8px; margin-left: 28px;">
+                                            <span class="privacy-description">
+                                                <% if (webhook.isPublic !== false) { %>
+                                                    Messages will be posted in the announce channel for everyone to see.
+                                                <% } else { %>
+                                                    Messages will be sent as a private DM only to you.
+                                                <% } %>
+                                            </span>
+                                        </p>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        <% } else { %>
+                            <p style="color: #666; margin-bottom: 20px;">No custom webhooks created yet.</p>
+                        <% } %>
+                        
+                        <form class="webhook-create-form" data-guild-id="<%= guild.id %>">
+                            <input type="text" name="identifier" class="admin-role-select" placeholder="webhook-identifier (3-50 chars, alphanumeric and hyphens)" required style="margin-bottom: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; cursor: pointer;">
+                                <input type="checkbox" name="isPublic" checked style="cursor: pointer;">
+                                <span style="font-size: 0.9em; color: #333;">Public (visible to everyone in channel)</span>
+                            </label>
+                            <button type="submit" class="save-btn">Create Webhook</button>
+                        </form>
+                    </div>
+                <% } %>
+            <% }); %>
+            
+            <div class="invite-card">
+                <h2>➕ Add Bot to More Servers</h2>
+                <p>Want to use the bot in additional Discord servers? Click the button below to add it to another server.</p>
+                <a href="<%= inviteUrl %>" class="invite-btn-secondary" target="_blank">Add Bot to Server</a>
+            </div>
+        <% } else { %>
+            <div class="no-bot-card">
+                <h2>🤖 Bot Not Found</h2>
+                <p>The bot is not currently in any of your Discord servers.</p>
+                <p>Add the bot to your server to start receiving webhook notifications!</p>
+                <a href="<%= inviteUrl %>" class="invite-btn" target="_blank">Add Bot to Server</a>
+            </div>
+        <% } %>
+    </div>
+    
+    <script>
+        document.querySelectorAll('.admin-role-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const guildId = form.dataset.guildId;
+                const roleId = formData.get('roleId') || null;
+                const saveBtn = form.querySelector('.save-btn');
+                
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+                
+                try {
+                    const response = await fetch('/dashboard/admin-role', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ guildId, roleId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        saveBtn.textContent = 'Saved!';
+                        saveBtn.style.background = '#28a745';
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to save admin role'));
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save Admin Role';
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Admin Role';
+                }
+            });
+        });
+        
+        document.querySelectorAll('.announce-channel-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const guildId = form.dataset.guildId;
+                const channelId = formData.get('channelId') || null;
+                const saveBtn = form.querySelector('.save-btn');
+                
+                if (!channelId) {
+                    alert('Please select a channel');
+                    return;
+                }
+                
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+                
+                try {
+                    const response = await fetch('/dashboard/announce-channel', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ guildId, channelId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        saveBtn.textContent = 'Saved!';
+                        saveBtn.style.background = '#28a745';
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to save announce channel'));
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save Announce Channel';
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Announce Channel';
+                }
+            });
+        });
+        
+        document.querySelectorAll('.webhook-create-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const guildId = form.dataset.guildId;
+                const identifier = formData.get('identifier').trim();
+                const isPublic = formData.get('isPublic') === 'on';
+                const submitBtn = form.querySelector('.save-btn');
+                
+                if (!identifier) {
+                    alert('Please enter a webhook identifier');
+                    return;
+                }
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+                
+                try {
+                    const response = await fetch('/dashboard/webhook', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ guildId, identifier, isPublic })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        submitBtn.textContent = 'Created!';
+                        submitBtn.style.background = '#28a745';
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to create webhook'));
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Create Webhook';
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Webhook';
+                }
+            });
+        });
+        
+        document.querySelectorAll('.webhook-privacy-toggle').forEach(toggle => {
+            toggle.addEventListener('change', async (e) => {
+                const identifier = toggle.dataset.identifier;
+                const isPublic = toggle.checked;
+                const webhookCard = toggle.closest('div[style*="background: #f8f9fa"]');
+                const description = webhookCard ? webhookCard.querySelector('.privacy-description') : null;
+                
+                toggle.disabled = true;
+                
+                try {
+                    const response = await fetch(`/dashboard/webhook/${identifier}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ isPublic })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        if (description) {
+                            description.textContent = isPublic 
+                                ? 'Messages will be posted in the announce channel for everyone to see.'
+                                : 'Messages will be sent as a private DM only to you.';
+                        }
+                        toggle.disabled = false;
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to update webhook privacy'));
+                        toggle.checked = !isPublic; // Revert checkbox
+                        toggle.disabled = false;
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                    toggle.checked = !isPublic; // Revert checkbox
+                    toggle.disabled = false;
+                }
+            });
+        });
+        
+        document.querySelectorAll('.delete-webhook-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (!confirm('Are you sure you want to delete this webhook?')) {
+                    return;
+                }
+                
+                const identifier = btn.dataset.identifier;
+                btn.disabled = true;
+                btn.textContent = 'Deleting...';
+                
+                try {
+                    const response = await fetch(`/dashboard/webhook/${identifier}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        btn.textContent = 'Deleted!';
+                        btn.style.background = '#28a745';
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to delete webhook'));
+                        btn.disabled = false;
+                        btn.textContent = 'Delete';
+                    }
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Delete';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

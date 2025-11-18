@@ -63,7 +63,9 @@ A Discord bot for Prusa Connect notifications and more, featuring slash commands
 Once the bot is running and invited to your server, you can use slash commands:
 
 - `/pbabout` - Shows basic information about the bot
-- `/pbhere` - Sets the current channel as the announce channel for webhook messages
+- `/pbadmin` - Configure bot administrator settings
+  - `/pbadmin role` - Set or clear the administrator role for the bot
+  - `/pbadmin channel` - Set the announce channel for webhook messages (can specify a channel or use current channel)
 
 All commands are prefixed with `pb` to avoid conflicts with other bots.
 
@@ -71,7 +73,7 @@ All commands are prefixed with `pb` to avoid conflicts with other bots.
 
 The bot listens for webhook POST requests at `http://localhost:3000/webhook` (or your deployed URL). 
 
-1. **Set an announce channel**: Use `/pbhere` in the Discord channel where you want webhook messages posted
+1. **Set an announce channel**: Use `/pbadmin channel` in the Discord channel where you want webhook messages posted, or specify a channel
 2. **Send webhooks**: POST to the webhook endpoint with your notification data
 3. **Messages are posted**: The bot extracts the body content and posts it to the announce channel
 

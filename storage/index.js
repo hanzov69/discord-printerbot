@@ -11,6 +11,8 @@ const __dirname = dirname(__filename);
 
 const STORAGE_TYPE = process.env.STORAGE_TYPE || 'file';
 const STORAGE_FILE = process.env.STORAGE_FILE || join(process.cwd(), 'data', 'channels.json');
+const ADMIN_STORAGE_FILE = join(process.cwd(), 'data', 'administrators.json');
+const WEBHOOKS_STORAGE_FILE = join(process.cwd(), 'data', 'webhooks.json');
 const DATABASE_URL = process.env.DATABASE_URL;
 
 // File storage implementation
@@ -50,6 +52,58 @@ class FileStorage {
       return false;
     }
   }
+
+  async loadAdministrators() {
+    try {
+      const adminFilePath = ADMIN_STORAGE_FILE;
+      if (existsSync(adminFilePath)) {
+        const data = readFileSync(adminFilePath, 'utf-8');
+        return JSON.parse(data);
+      }
+      return {};
+    } catch (error) {
+      console.error('Error loading administrators from file storage:', error.message);
+      return {};
+    }
+  }
+
+  async saveAdministrators(data) {
+    try {
+      const adminFilePath = ADMIN_STORAGE_FILE;
+      this.ensureDirectory();
+      writeFileSync(adminFilePath, JSON.stringify(data, null, 2), 'utf-8');
+      return true;
+    } catch (error) {
+      console.error('Error saving administrators to file storage:', error.message);
+      return false;
+    }
+  }
+
+  async loadWebhooks() {
+    try {
+      const webhooksFilePath = WEBHOOKS_STORAGE_FILE;
+      if (existsSync(webhooksFilePath)) {
+        const data = readFileSync(webhooksFilePath, 'utf-8');
+        return JSON.parse(data);
+      }
+      return {};
+    } catch (error) {
+      console.error('Error loading webhooks from file storage:', error.message);
+      return {};
+    }
+  }
+
+  async saveWebhooks(data) {
+    try {
+      const webhooksFilePath = WEBHOOKS_STORAGE_FILE;
+      this.ensureDirectory();
+      writeFileSync(webhooksFilePath, JSON.stringify(data, null, 2), 'utf-8');
+      return true;
+    } catch (error) {
+      console.error('Error saving webhooks to file storage:', error.message);
+      return false;
+    }
+  }
 }
 
 // PostgreSQL storage implementation
@@ -72,6 +126,24 @@ class PostgreSQLStorage {
           guild_id VARCHAR(255) PRIMARY KEY,
           channel_id VARCHAR(255) NOT NULL,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS administrators (
+          guild_id VARCHAR(255) PRIMARY KEY,
+          owner_id VARCHAR(255),
+          admin_role_id VARCHAR(255),
+          user_ids TEXT[],
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS custom_webhooks (
+          identifier VARCHAR(255) PRIMARY KEY,
+          user_id VARCHAR(255) NOT NULL,
+          guild_id VARCHAR(255) NOT NULL,
+          is_public BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
       client.release();
@@ -131,6 +203,119 @@ class PostgreSQLStorage {
       await client.query('ROLLBACK').catch(() => {});
       client.release();
       console.error('Error saving to PostgreSQL storage:', error.message);
+      return false;
+    }
+  }
+
+  async loadAdministrators() {
+    try {
+      await this.initialize();
+      const client = await this.pool.connect();
+      const result = await client.query('SELECT guild_id, owner_id, admin_role_id, user_ids FROM administrators');
+      client.release();
+
+      const data = {};
+      for (const row of result.rows) {
+        data[row.guild_id] = {
+          ownerId: row.owner_id,
+          adminRoleId: row.admin_role_id,
+          userIds: row.user_ids || []
+        };
+      }
+      return data;
+    } catch (error) {
+      console.error('Error loading administrators from PostgreSQL storage:', error.message);
+      return {};
+    }
+  }
+
+  async saveAdministrators(data) {
+    const client = await this.pool.connect();
+    try {
+      await this.initialize();
+
+      // Use transaction for atomic updates
+      await client.query('BEGIN');
+
+      // Clear existing data
+      await client.query('TRUNCATE TABLE administrators');
+
+      // Insert all entries using parameterized queries
+      if (Object.keys(data).length > 0) {
+        for (const [guildId, adminData] of Object.entries(data)) {
+          await client.query(
+            `INSERT INTO administrators (guild_id, owner_id, admin_role_id, user_ids) 
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (guild_id) DO UPDATE SET owner_id = EXCLUDED.owner_id, admin_role_id = EXCLUDED.admin_role_id, user_ids = EXCLUDED.user_ids, updated_at = CURRENT_TIMESTAMP`,
+            [guildId, adminData.ownerId || null, adminData.adminRoleId || null, adminData.userIds || []]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+      client.release();
+      return true;
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      client.release();
+      console.error('Error saving administrators to PostgreSQL storage:', error.message);
+      return false;
+    }
+  }
+
+  async loadWebhooks() {
+    try {
+      await this.initialize();
+      const client = await this.pool.connect();
+      const result = await client.query('SELECT identifier, user_id, guild_id, is_public, created_at FROM custom_webhooks');
+      client.release();
+
+      const data = {};
+      for (const row of result.rows) {
+        data[row.identifier] = {
+          userId: row.user_id,
+          guildId: row.guild_id,
+          isPublic: row.is_public !== false, // Default to true if null
+          createdAt: row.created_at
+        };
+      }
+      return data;
+    } catch (error) {
+      console.error('Error loading webhooks from PostgreSQL storage:', error.message);
+      return {};
+    }
+  }
+
+  async saveWebhooks(data) {
+    const client = await this.pool.connect();
+    try {
+      await this.initialize();
+
+      // Use transaction for atomic updates
+      await client.query('BEGIN');
+
+      // Clear existing data
+      await client.query('TRUNCATE TABLE custom_webhooks');
+
+      // Insert all entries using parameterized queries
+      if (Object.keys(data).length > 0) {
+        for (const [identifier, webhookData] of Object.entries(data)) {
+          await client.query(
+            `INSERT INTO custom_webhooks (identifier, user_id, guild_id, is_public, created_at) 
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (identifier) DO UPDATE SET user_id = EXCLUDED.user_id, guild_id = EXCLUDED.guild_id, is_public = EXCLUDED.is_public`,
+            [identifier, webhookData.userId, webhookData.guildId, webhookData.isPublic !== false, webhookData.createdAt || new Date().toISOString()]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+      client.release();
+      return true;
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      client.release();
+      console.error('Error saving webhooks to PostgreSQL storage:', error.message);
       return false;
     }
   }

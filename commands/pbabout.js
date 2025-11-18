@@ -11,7 +11,7 @@ export default {
     const announceChannelId = getChannel(guildId);
     const announceChannelText = announceChannelId 
       ? `<#${announceChannelId}>` 
-      : 'Not set (use `/pbhere` to set)';
+      : 'Not set (use `/pbadmin channel` to set)';
 
     const embed = new EmbedBuilder()
       .setTitle('🤖 Prusa Better Discord')
