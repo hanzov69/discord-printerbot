@@ -256,7 +256,7 @@ app.post('/webhook/:identifier', async (req, res) => {
     if (!channelId) {
       return res.status(400).json({ 
         success: false, 
-        error: 'No announce channel set for this server. Use /pbadmin channel in a Discord channel first.' 
+        error: 'No announce channel set for this server. Use /pb admin channel in a Discord channel first.' 
       });
     }
 

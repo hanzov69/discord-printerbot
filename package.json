@@ -1,7 +1,7 @@
 {
-  "name": "prusa-better-discord",
+  "name": "printerbot",
   "version": "1.0.0",
-  "description": "Discord bot for Prusa Connect notifications",
+  "description": "Discord bot for 3D printer notifications and webhook management",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -12,7 +12,8 @@
   "keywords": [
     "discord",
     "bot",
-    "prusa"
+    "printer",
+    "3Dprinter"
   ],
   "author": "",
   "license": "MIT",

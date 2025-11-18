@@ -1,11 +1,11 @@
-# Prusa Better Discord Bot
+# PrinterBot
 
-A Discord bot for Prusa Connect notifications and more, featuring slash commands with the `pb` prefix.
+A Discord bot for 3D Printer notifications and more, featuring slash commands with the `pb` prefix.
 
 ## Features
 
 - 🤖 Discord bot with slash commands
-- 📝 All commands prefixed with `pb` (e.g., `/pbabout`)
+- 📝 All commands use the `/pb` command with subcommands (e.g., `/pb about`)
 - 🔧 Easy to extend with new commands
 - ⚡ Built with Discord.js v14
 - 📡 Webhook endpoint for receiving external notifications
@@ -62,18 +62,23 @@ A Discord bot for Prusa Connect notifications and more, featuring slash commands
 
 Once the bot is running and invited to your server, you can use slash commands:
 
-- `/pbabout` - Shows basic information about the bot
-- `/pbadmin` - Configure bot administrator settings
-  - `/pbadmin role` - Set or clear the administrator role for the bot
-  - `/pbadmin channel` - Set the announce channel for webhook messages (can specify a channel or use current channel)
+- `/pb about` - Shows basic information about the bot
+- `/pb admin` - Configure bot administrator settings
+  - `/pb admin role` - Set or clear the administrator role for the bot
+  - `/pb admin channel` - Set the announce channel for webhook messages (can specify a channel or use current channel)
+- `/pb webhook` - Manage custom webhook endpoints
+  - `/pb webhook create` - Create a new custom webhook endpoint
+  - `/pb webhook list` - List all your custom webhook endpoints
+  - `/pb webhook delete` - Delete a custom webhook endpoint
+  - `/pb webhook privacy` - Toggle webhook privacy (public/private)
 
-All commands are prefixed with `pb` to avoid conflicts with other bots.
+All commands use the `/pb` prefix to avoid conflicts with other bots.
 
 ### Webhook Integration
 
 The bot listens for webhook POST requests at `http://localhost:3000/webhook` (or your deployed URL). 
 
-1. **Set an announce channel**: Use `/pbadmin channel` in the Discord channel where you want webhook messages posted, or specify a channel
+1. **Set an announce channel**: Use `/pb admin channel` in the Discord channel where you want webhook messages posted, or specify a channel
 2. **Send webhooks**: POST to the webhook endpoint with your notification data
 3. **Messages are posted**: The bot extracts the body content and posts it to the announce channel
 
@@ -110,7 +115,7 @@ export default {
 ## Command Structure
 
 All commands should:
-- Have a name starting with `pb` (e.g., `pbabout`, `pbping`, `pbstatus`)
+- Use the `/pb` command structure with subcommands (e.g., `/pb about`, `/pb admin role`)
 - Export a default object with `data` and `execute` properties
 - Use `SlashCommandBuilder` for command definition
 - Handle interactions in the `execute` function
@@ -163,14 +168,14 @@ DATABASE_SSL=false
 - `STORAGE_TYPE`: Set to `postgres` or `postgresql`
 - `DATABASE_URL`: PostgreSQL connection string
   - Format: `postgresql://user:password@host:port/database`
-  - Example: `postgresql://myuser:mypass@localhost:5432/prusa_bot`
+  - Example: `postgresql://myuser:mypass@localhost:5432/printerbot`
 - `DATABASE_SSL`: Set to `true` if your database requires SSL (e.g., cloud providers like Heroku, Railway)
 
 **Database Setup:**
 The bot will automatically create the required table (`announce_channels`) on first run. No manual database setup is needed.
 
 **PostgreSQL Connection String Examples:**
-- Local: `postgresql://postgres:password@localhost:5432/prusa_better_discord`
+- Local: `postgresql://postgres:password@localhost:5432/printerbot`
 - Heroku: `postgresql://user:pass@ec2-xx-xx-xx-xx.compute-1.amazonaws.com:5432/dbname` (set `DATABASE_SSL=true`)
 - Railway: `postgresql://postgres:password@containers-us-west-xxx.railway.app:5432/railway` (set `DATABASE_SSL=true`)
 
@@ -185,7 +190,7 @@ The bot will automatically create the required table (`announce_channels`) on fi
 - Set environment variables on your hosting platform
 - Use a process manager like PM2:
   ```bash
-  pm2 start index.js --name prusa-better-discord
+  pm2 start index.js --name printerbot
   ```
 
 ### Hosting Options
