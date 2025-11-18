@@ -34,12 +34,14 @@ A Discord bot for 3D Printer notifications and more, featuring slash commands wi
    - In the Discord Developer Portal, go to "General Information"
    - Copy the "Application ID" (this is your Client ID)
 
-3. **Install dependencies:**
+## If running from source 
+
+1. **Install dependencies:**
    ```bash
    npm install
    ```
 
-4. **Configure environment variables:**
+2. **Configure environment variables:**
    - Copy `env.example` to `.env`
    - Add your Discord bot token and client ID:
      ```
@@ -48,7 +50,7 @@ A Discord bot for 3D Printer notifications and more, featuring slash commands wi
      ```
    - Configure storage (see [Storage Configuration](#storage-configuration) below)
 
-5. **Start the bot:**
+3. **Start the bot:**
    ```bash
    npm start
    ```
@@ -57,10 +59,19 @@ A Discord bot for 3D Printer notifications and more, featuring slash commands wi
    ```bash
    npm run dev
    ```
+## If running from container (Docker)
+
+  1. Pull the container, `docker pull ghcr.io/hanzov69/discord-printerbot:latest` (this will pull latest, use desired tag)
+
+  2. In the directory with your `.env` and a `/data` directory, run with 
+     `docker run -d name printerbot -p 3000:3000 --env-file .env -v ./data:/app/data ghcr.io/hanzov69/discord-printerbot:latest`
 
 ## Usage
 
-Once the bot is running and invited to your server, you can use slash commands:
+Once the bot is running, you can connect to the web interface via
+- http://localhost:3000 (or your deployed URL)
+
+Once invited/joined to a server, you can use slash commands (in addition to web interface) to control:
 
 - `/pb about` - Shows basic information about the bot
 - `/pb admin` - Configure bot administrator settings
@@ -74,9 +85,11 @@ Once the bot is running and invited to your server, you can use slash commands:
 
 All commands use the `/pb` prefix to avoid conflicts with other bots.
 
+
 ### Webhook Integration
 
-The bot listens for webhook POST requests at `http://localhost:3000/webhook` (or your deployed URL). 
+The bot listens for webhook POST requests at `http://localhost:3000/webhook/<custom webhook>` (or your deployed URL). 
+You *must* create a custom webhook for yourself
 
 1. **Set an announce channel**: Use `/pb admin channel` in the Discord channel where you want webhook messages posted, or specify a channel
 2. **Send webhooks**: POST to the webhook endpoint with your notification data
@@ -84,10 +97,30 @@ The bot listens for webhook POST requests at `http://localhost:3000/webhook` (or
 
 Example webhook request:
 ```bash
-curl -X POST http://localhost:3000/webhook \
+curl -X POST http://localhost:3000/webhook/customendpoint \
   -H "Content-Type: application/json" \
   -d '{"message": "Print job completed!"}'
 ```
+
+Additional supported fields:
+
+If you want to include an image snapshot in your webhook, include a `snapshot` element in your payload body, eg:
+```bash
+curl -X POST http://localhost:3000/webhook/customendpoint \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Print job completed!","snapshot":"https://domain.com/picture.jpg" }'
+```
+
+Message formatting:
+
+The bot will automatically include emoji/formatting for messages with specific text
+
+- 🎉 `**finished**`
+- ⚠️ `**requires your attention**`
+- ✅ `**adjust**`
+
+These are to support the inflexible Prusa Connect webhook posts
+
 
 ## Adding New Commands
 
@@ -265,16 +298,14 @@ The repository includes a GitHub Actions workflow that automatically builds and 
 **Pulling the image:**
 ```bash
 # Pull latest image
-docker pull ghcr.io/your-username/printerbot:latest
+docker pull ghcr.io/hanzov69/discord-printerbot:latest
 
 # Pull specific version
-docker pull ghcr.io/your-username/printerbot:v1.0.0
+docker pull ghcr.io/hanzov69/discord-printerbot:v1.0.0
 
 # Pull from specific branch
-docker pull ghcr.io/your-username/printerbot:main
+docker pull ghcr.io/hanzov69/discord-printerbot:main
 ```
-
-**Note:** Make sure your GitHub repository has packages enabled. The workflow uses `GITHUB_TOKEN` automatically, so no additional secrets are required.
 
 ### Hosting Options
 - **VPS/Cloud Server**: Deploy on any Node.js-compatible hosting or use Docker
