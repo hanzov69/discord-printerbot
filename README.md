@@ -8,6 +8,8 @@ A Discord bot for Prusa Connect notifications and more, featuring slash commands
 - 📝 All commands prefixed with `pb` (e.g., `/pbabout`)
 - 🔧 Easy to extend with new commands
 - ⚡ Built with Discord.js v14
+- 📡 Webhook endpoint for receiving external notifications
+- 💾 Persistent storage for announce channels (file or PostgreSQL)
 
 ## Prerequisites
 
@@ -44,6 +46,7 @@ A Discord bot for Prusa Connect notifications and more, featuring slash commands
      DISCORD_TOKEN=your_bot_token_here
      DISCORD_CLIENT_ID=your_client_id_here
      ```
+   - Configure storage (see [Storage Configuration](#storage-configuration) below)
 
 5. **Start the bot:**
    ```bash
@@ -60,8 +63,24 @@ A Discord bot for Prusa Connect notifications and more, featuring slash commands
 Once the bot is running and invited to your server, you can use slash commands:
 
 - `/pbabout` - Shows basic information about the bot
+- `/pbhere` - Sets the current channel as the announce channel for webhook messages
 
 All commands are prefixed with `pb` to avoid conflicts with other bots.
+
+### Webhook Integration
+
+The bot listens for webhook POST requests at `http://localhost:3000/webhook` (or your deployed URL). 
+
+1. **Set an announce channel**: Use `/pbhere` in the Discord channel where you want webhook messages posted
+2. **Send webhooks**: POST to the webhook endpoint with your notification data
+3. **Messages are posted**: The bot extracts the body content and posts it to the announce channel
+
+Example webhook request:
+```bash
+curl -X POST http://localhost:3000/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Print job completed!"}'
+```
 
 ## Adding New Commands
 
@@ -98,8 +117,62 @@ All commands should:
 
 ### Environment Variables
 
+**Required:**
 - `DISCORD_TOKEN` (required): Your Discord bot token
 - `DISCORD_CLIENT_ID` (required): Your Discord application client ID
+
+**Optional:**
+- `PORT` (optional): Webhook server port (default: 3000)
+
+### Storage Configuration
+
+The bot supports two storage backends for persisting announce channel settings. Configure storage using environment variables in your `.env` file.
+
+#### File Storage (Default)
+
+File storage is the simplest option and requires no additional setup. Data is stored in a JSON file.
+
+```env
+STORAGE_TYPE=file
+STORAGE_FILE=./data/channels.json
+```
+
+- `STORAGE_TYPE`: Set to `file` (or omit, as this is the default)
+- `STORAGE_FILE`: Path to the JSON file (default: `./data/channels.json`)
+
+The `data/` directory will be created automatically if it doesn't exist.
+
+#### PostgreSQL Storage
+
+For production deployments or when you need shared storage across multiple instances, use PostgreSQL.
+
+**Prerequisites:**
+- PostgreSQL database server
+- Database created for the bot
+- Connection credentials
+
+**Configuration:**
+```env
+STORAGE_TYPE=postgres
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+DATABASE_SSL=false
+```
+
+- `STORAGE_TYPE`: Set to `postgres` or `postgresql`
+- `DATABASE_URL`: PostgreSQL connection string
+  - Format: `postgresql://user:password@host:port/database`
+  - Example: `postgresql://myuser:mypass@localhost:5432/prusa_bot`
+- `DATABASE_SSL`: Set to `true` if your database requires SSL (e.g., cloud providers like Heroku, Railway)
+
+**Database Setup:**
+The bot will automatically create the required table (`announce_channels`) on first run. No manual database setup is needed.
+
+**PostgreSQL Connection String Examples:**
+- Local: `postgresql://postgres:password@localhost:5432/prusa_better_discord`
+- Heroku: `postgresql://user:pass@ec2-xx-xx-xx-xx.compute-1.amazonaws.com:5432/dbname` (set `DATABASE_SSL=true`)
+- Railway: `postgresql://postgres:password@containers-us-west-xxx.railway.app:5432/railway` (set `DATABASE_SSL=true`)
+
+**Note:** If `STORAGE_TYPE` is set to `postgres` but `DATABASE_URL` is missing, the bot will fall back to file storage with a warning.
 
 ## Deployment
 
